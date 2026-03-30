@@ -1,0 +1,183 @@
+:root {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #1d2b3a;
+  background: #eef2f7;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #eef2f7;
+  color: #1d2b3a;
+}
+
+.page {
+  min-height: 100vh;
+}
+
+.header {
+  height: 72px;
+  background: #ffffff;
+  border-bottom: 1px solid #d7dee8;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+}
+
+.logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #dde6f3;
+  color: #26486f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.org-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #22364d;
+}
+
+.content {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.search-panel,
+.table-card,
+.profile-card,
+.tab-content {
+  background: #fff;
+  border: 1px solid #d7dee8;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.search-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #3a4c61;
+  font-size: 13px;
+}
+
+input {
+  border: 1px solid #bcc8d8;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 14px;
+  color: #1d2b3a;
+  background: #fcfdff;
+}
+
+.search-button,
+.tab-button {
+  border: 1px solid #7f95b1;
+  background: #f6f9fd;
+  color: #24405f;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid #d7dee8;
+  padding: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  color: #324b67;
+  background: #f2f6fb;
+}
+
+.clickable-row {
+  cursor: pointer;
+}
+
+.clickable-row:hover {
+  background: #f8fbff;
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  gap: 18px;
+}
+
+.profile-photo {
+  width: 148px;
+  height: 148px;
+  border-radius: 12px;
+  background: #e9eef6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 54px;
+}
+
+.profile-details h1 {
+  margin: 0 0 12px;
+  font-size: 28px;
+}
+
+.profile-details p {
+  margin: 0 0 6px;
+}
+
+.tabs-wrap {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+
+.tab-button.active {
+  background: #dae6f5;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 12px;
+  color: #1f3f61;
+  text-decoration: none;
+}
+
+.empty-state {
+  margin: 12px 0 0;
+  color: #4b6079;
+}
+
+@media (max-width: 900px) {
+  .search-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-card {
+    grid-template-columns: 1fr;
+  }
+}
