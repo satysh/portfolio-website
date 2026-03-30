@@ -3,7 +3,9 @@ function SearchBar({ filters, onFilterChange }) {
     { key: 'fullName', label: 'ФИО' },
     { key: 'position', label: 'Должность' },
     { key: 'email', label: 'E-mail' },
-    { key: 'phone', label: 'Телефон' }
+    { key: 'phone', label: 'Телефон' },
+    { key: 'laboratory', label: 'Лаборатория' },
+    { key: 'contractEndYear', label: 'Год окончания контракта' }
   ];
 
   return (

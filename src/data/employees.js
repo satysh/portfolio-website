@@ -26,13 +26,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
@@ -65,13 +67,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
@@ -104,13 +108,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
@@ -143,13 +149,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
@@ -182,13 +190,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
@@ -221,13 +231,15 @@ export const employees = [
         year: 2021,
         title: 'Тайны старого замка',
         authors: 'С. Дум',
-        journal: 'Mystery Journal'
+        journal: 'Mystery Journal',
+        doi: '10.1234/mystery.2021.001'
       },
       {
         year: 2020,
         title: 'Спасение острова',
         authors: 'Б. Панчирз',
-        journal: 'Adventure Science'
+        journal: 'Adventure Science',
+        doi: '10.1234/adventure.2020.002'
       }
     ],
     kazakhstanWorks:
