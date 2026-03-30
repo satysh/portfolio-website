@@ -28,6 +28,14 @@ body {
   padding: 0 24px;
 }
 
+.header-home-link {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  text-decoration: none;
+  color: inherit;
+}
+
 .logo {
   width: 38px;
   height: 38px;

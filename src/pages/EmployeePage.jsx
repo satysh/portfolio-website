@@ -69,15 +69,17 @@ function EmployeePage() {
                   <th>Название статьи</th>
                   <th>Авторы</th>
                   <th>Журнал</th>
+                  <th>DOI</th>
                 </tr>
               </thead>
               <tbody>
                 {employee.publications.map((publication) => (
-                  <tr key={`${publication.year}-${publication.title}`}>
+                  <tr key={`${publication.year}-${publication.title}-${publication.doi}`}>
                     <td>{publication.year}</td>
                     <td>{publication.title}</td>
                     <td>{publication.authors}</td>
                     <td>{publication.journal}</td>
+                    <td>{publication.doi}</td>
                   </tr>
                 ))}
               </tbody>

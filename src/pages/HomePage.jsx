@@ -8,19 +8,30 @@ const defaultFilters = {
   fullName: '',
   position: '',
   email: '',
-  phone: ''
+  phone: '',
+  laboratory: '',
+  contractEndYear: ''
 };
+
+function getContractEndYear(contractEndDate) {
+  const match = contractEndDate.match(/\d{4}/);
+  return match ? match[0] : '';
+}
 
 function HomePage() {
   const [filters, setFilters] = useState(defaultFilters);
 
   const filteredEmployees = useMemo(() => {
     return employees.filter((employee) => {
+      const contractEndYear = getContractEndYear(employee.admin.contractEndDate);
+
       return (
         employee.fullName.toLowerCase().includes(filters.fullName.toLowerCase()) &&
         employee.position.toLowerCase().includes(filters.position.toLowerCase()) &&
         employee.email.toLowerCase().includes(filters.email.toLowerCase()) &&
-        employee.phone.toLowerCase().includes(filters.phone.toLowerCase())
+        employee.phone.toLowerCase().includes(filters.phone.toLowerCase()) &&
+        employee.laboratory.toLowerCase().includes(filters.laboratory.toLowerCase()) &&
+        contractEndYear.includes(filters.contractEndYear.trim())
       );
     });
   }, [filters]);
