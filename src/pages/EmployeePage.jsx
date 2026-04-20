@@ -8,8 +8,70 @@ import { employees } from '../data/employees';
 const tabs = [
   { id: 'profile', label: 'Анкета' },
   { id: 'publications', label: 'Публикации' },
-  { id: 'kazakhstan', label: 'Работы в Казахстане' }
+  { id: 'jinrActivity', label: 'Деятельность в ОИЯИ' },
+  { id: 'kazakhstanActivity', label: 'Деятельность в Казахстане' }
 ];
+
+function buildCvMarkdown(employee) {
+  return `# CV: ${employee.fullName}
+
+## Основная информация
+- **ФИО:** ${employee.fullName}
+- **Должность:** ${employee.position}
+- **Лаборатория:** ${employee.laboratory}
+- **Дата рождения:** ${employee.birthDate}
+- **Email:** ${employee.email}
+- **Телефон:** ${employee.phone}
+
+## Научные профили
+- **Scopus ID:** ${employee.scopusId}
+- **Web of Science ID:** ${employee.wosId}
+- **ORCID ID:** ${employee.orcidId}
+
+## Научная квалификация
+- **Ученая степень:** ${employee.academicDegree.degree}
+- **Год получения степени:** ${employee.academicDegree.year}
+- **Место защиты:** ${employee.academicDegree.defensePlace}
+
+## Сфера деятельности
+- **Навыки:** ${employee.activity.skills}
+- **Опыт работы:** ${employee.activity.experience}
+- **Дата начала работы:** ${employee.activity.startDate}
+- **Проекты / зоны ответственности:** ${employee.activity.projects}
+
+## Деятельность в ОИЯИ
+${employee.jinrActivity}
+
+## Деятельность в Казахстане
+${employee.kazakhstanActivity}
+
+## Руководитель в ОИЯИ
+- **Лаборатория:** ${employee.supervisors.jinr.laboratory}
+- **Должность:** ${employee.supervisors.jinr.position}
+- **Email:** ${employee.supervisors.jinr.email}
+- **Телефон:** ${employee.supervisors.jinr.phone}
+
+## Руководитель в Казахстане
+- **Лаборатория:** ${employee.supervisors.kazakhstan.laboratory}
+- **Должность:** ${employee.supervisors.kazakhstan.position}
+- **Email:** ${employee.supervisors.kazakhstan.email}
+- **Телефон:** ${employee.supervisors.kazakhstan.phone}
+`;
+}
+
+function downloadCv(employee) {
+  const markdown = buildCvMarkdown(employee);
+  const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = `${employee.id}-cv.md`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
 
 function EmployeePage() {
   const { employeeId } = useParams();
@@ -37,7 +99,7 @@ function EmployeePage() {
       <Header />
       <main className="content">
         <Link to="/" className="back-link">← Назад к таблице</Link>
-        <EmployeeProfile employee={employee} />
+        <EmployeeProfile employee={employee} onDownloadCv={() => downloadCv(employee)} />
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === 'profile' && (
@@ -52,11 +114,17 @@ function EmployeePage() {
             <p><strong>Тип договора:</strong> {employee.admin.contractType}</p>
             <p><strong>Срок окончания договора:</strong> {employee.admin.contractEndDate}</p>
 
-            <h2>Будущие планы</h2>
-            <p>
-              Сделать для Казахстана все хорошо, а не плохо,
-              и самое главное — от чистого сердца.
-            </p>
+            <h2>Руководитель в ОИЯИ</h2>
+            <p><strong>Лаборатория:</strong> {employee.supervisors.jinr.laboratory}</p>
+            <p><strong>Должность:</strong> {employee.supervisors.jinr.position}</p>
+            <p><strong>Email:</strong> {employee.supervisors.jinr.email}</p>
+            <p><strong>Телефон:</strong> {employee.supervisors.jinr.phone}</p>
+
+            <h2>Руководитель в Казахстане</h2>
+            <p><strong>Лаборатория:</strong> {employee.supervisors.kazakhstan.laboratory}</p>
+            <p><strong>Должность:</strong> {employee.supervisors.kazakhstan.position}</p>
+            <p><strong>Email:</strong> {employee.supervisors.kazakhstan.email}</p>
+            <p><strong>Телефон:</strong> {employee.supervisors.kazakhstan.phone}</p>
           </section>
         )}
 
@@ -87,9 +155,15 @@ function EmployeePage() {
           </section>
         )}
 
-        {activeTab === 'kazakhstan' && (
+        {activeTab === 'jinrActivity' && (
           <section className="tab-content">
-            <p>{employee.kazakhstanWorks}</p>
+            <p>{employee.jinrActivity}</p>
+          </section>
+        )}
+
+        {activeTab === 'kazakhstanActivity' && (
+          <section className="tab-content">
+            <p>{employee.kazakhstanActivity}</p>
           </section>
         )}
       </main>
