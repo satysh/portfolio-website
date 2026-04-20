@@ -7,8 +7,6 @@ import { employees } from '../data/employees';
 const defaultFilters = {
   fullName: '',
   position: '',
-  email: '',
-  phone: '',
   laboratory: '',
   contractEndYear: ''
 };
@@ -28,8 +26,6 @@ function HomePage() {
       return (
         employee.fullName.toLowerCase().includes(filters.fullName.toLowerCase()) &&
         employee.position.toLowerCase().includes(filters.position.toLowerCase()) &&
-        employee.email.toLowerCase().includes(filters.email.toLowerCase()) &&
-        employee.phone.toLowerCase().includes(filters.phone.toLowerCase()) &&
         employee.laboratory.toLowerCase().includes(filters.laboratory.toLowerCase()) &&
         contractEndYear.includes(filters.contractEndYear.trim())
       );

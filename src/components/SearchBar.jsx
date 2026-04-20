@@ -2,8 +2,6 @@ function SearchBar({ filters, onFilterChange }) {
   const inputs = [
     { key: 'fullName', label: 'ФИО' },
     { key: 'position', label: 'Должность' },
-    { key: 'email', label: 'E-mail' },
-    { key: 'phone', label: 'Телефон' },
     { key: 'laboratory', label: 'Лаборатория' },
     { key: 'contractEndYear', label: 'Год окончания контракта' }
   ];
