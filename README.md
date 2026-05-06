@@ -51,6 +51,40 @@ npm run build
 npm run preview
 ```
 
+
+## Частая ошибка при сборке
+
+Если при `npm run build` вы видите ошибку вида:
+
+```
+module.enableCompileCache?.()
+SyntaxError: Unexpected token '.'
+```
+
+это почти всегда означает слишком старую версию Node.js на сервере.
+
+### Как проверить и исправить
+
+```bash
+node -v
+```
+
+Для Vite 5 используйте Node.js 20.19+ (или 22.12+).
+
+Быстрое исправление на Ubuntu/Debian:
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+node -v
+npm -v
+
+# в папке проекта
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
 ## Деплой на сервер Ubuntu (Nginx)
 
 Ниже — пошаговая инструкция для развёртывания production-сборки как статического сайта.
