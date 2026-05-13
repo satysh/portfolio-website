@@ -22,11 +22,11 @@ function EmployeeTable({ employees }) {
               onClick={() => navigate(`/employee/${employee.id}`)}
               className="clickable-row"
             >
-              <td>{employee.shortName}</td>
-              <td>{employee.position}</td>
-              <td>{employee.email}</td>
-              <td>{employee.phone}</td>
-              <td>{employee.laboratory}</td>
+              <td data-label="ФИО">{employee.shortName}</td>
+              <td data-label="Должность">{employee.position}</td>
+              <td data-label="E-mail">{employee.email}</td>
+              <td data-label="Телефон">{employee.phone}</td>
+              <td data-label="Лаборатория">{employee.laboratory}</td>
             </tr>
           ))}
         </tbody>

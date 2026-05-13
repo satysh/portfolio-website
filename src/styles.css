@@ -181,11 +181,77 @@ th {
 }
 
 @media (max-width: 900px) {
+  .header {
+    height: auto;
+    padding: 12px 16px;
+  }
+
+  .header-home-link {
+    gap: 12px;
+  }
+
+  .org-name {
+    font-size: 16px;
+  }
+
+  .content {
+    padding: 16px;
+  }
+
   .search-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .profile-card {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .search-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .search-button {
+    width: 100%;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  .clickable-row {
+    border: 1px solid #d7dee8;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+
+  .clickable-row td {
+    border: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .clickable-row td::before {
+    content: attr(data-label);
+    color: #324b67;
+    font-weight: 600;
+    text-align: left;
+    flex-shrink: 0;
+    padding-right: 8px;
   }
 }
