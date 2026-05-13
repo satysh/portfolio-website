@@ -170,9 +170,16 @@ th {
 
 .back-link {
   display: inline-block;
-  margin-bottom: 12px;
   color: #1f3f61;
   text-decoration: none;
+}
+
+.employee-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .empty-state {
@@ -257,8 +264,6 @@ th {
 }
 
 .edit-mode-button {
-  justify-self: end;
-  align-self: start;
   border: 1px solid #7f95b1;
   background: #f6f9fd;
   color: #24405f;
@@ -273,4 +278,15 @@ th {
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 12px;
+}
+
+@media (max-width: 680px) {
+  .employee-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .edit-mode-button {
+    width: 100%;
+  }
 }
