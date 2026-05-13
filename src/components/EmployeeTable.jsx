@@ -25,7 +25,7 @@ function EmployeeTable({ employees }) {
               <td data-label="ФИО">{employee.shortName}</td>
               <td data-label="Должность">{employee.position}</td>
               <td data-label="E-mail">{employee.email}</td>
-              <td data-label="Телефон">{employee.phone}</td>
+              <td data-label="Телефон" className="phone-cell">{employee.phone}</td>
               <td data-label="Лаборатория">{employee.laboratory}</td>
             </tr>
           ))}
