@@ -124,6 +124,12 @@ th {
   background: #f2f6fb;
 }
 
+
+.phone-cell {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .clickable-row {
   cursor: pointer;
 }
