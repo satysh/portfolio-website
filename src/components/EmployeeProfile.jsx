@@ -34,7 +34,7 @@ function buildProfileLink(type, id) {
   return `https://orcid.org/${encodeURIComponent(trimmedId)}`;
 }
 
-function EmployeeProfile({ employee, isEditMode, onToggleEditMode, onFieldChange, onDownloadCv }) {
+function EmployeeProfile({ employee, isEditMode, onFieldChange, onDownloadCv }) {
   const age = calculateAge(employee.birthDate);
 
   const renderTextField = (label, value, key) => (
@@ -48,9 +48,6 @@ function EmployeeProfile({ employee, isEditMode, onToggleEditMode, onFieldChange
 
   return (
     <section className="profile-card">
-      <button type="button" className="edit-mode-button" onClick={onToggleEditMode}>
-        {isEditMode ? 'Done' : 'Edit'}
-      </button>
       <div className="profile-photo" aria-label="Фото сотрудника">
         👤
       </div>

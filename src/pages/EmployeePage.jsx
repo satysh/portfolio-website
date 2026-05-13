@@ -132,11 +132,15 @@ function EmployeePage() {
     <div className="page">
       <Header />
       <main className="content">
-        <Link to="/" className="back-link">← Назад к таблице</Link>
+        <div className="employee-page-header">
+          <Link to="/" className="back-link">← Назад к таблице</Link>
+          <button type="button" className="edit-mode-button" onClick={() => setIsEditMode((previous) => !previous)}>
+            {isEditMode ? 'Done' : 'Edit'}
+          </button>
+        </div>
         <EmployeeProfile
           employee={employeeData}
           isEditMode={isEditMode}
-          onToggleEditMode={() => setIsEditMode((previous) => !previous)}
           onFieldChange={updateEmployeeField}
           onDownloadCv={() => downloadCv(employeeData)}
         />
