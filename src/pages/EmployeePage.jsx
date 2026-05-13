@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '../components/Header';
 import EmployeeProfile from '../components/EmployeeProfile';
 import Tabs from '../components/Tabs';
@@ -76,13 +76,47 @@ function downloadCv(employee) {
 function EmployeePage() {
   const { employeeId } = useParams();
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const employee = useMemo(
     () => employees.find((item) => item.id === employeeId),
     [employeeId]
   );
 
-  if (!employee) {
+  const [employeeData, setEmployeeData] = useState(employee);
+
+  useEffect(() => {
+    if (!employeeId || !employee) {
+      setEmployeeData(employee);
+      return;
+    }
+
+    const localData = localStorage.getItem(`employee-profile-${employeeId}`);
+    setEmployeeData(localData ? JSON.parse(localData) : employee);
+  }, [employeeId, employee]);
+
+  const updateEmployeeField = (path, value) => {
+    setEmployeeData((previousData) => {
+      if (!previousData) {
+        return previousData;
+      }
+
+      const keys = path.split('.');
+      const nextData = structuredClone(previousData);
+      let current = nextData;
+
+      for (let index = 0; index < keys.length - 1; index += 1) {
+        current = current[keys[index]];
+      }
+
+      current[keys.at(-1)] = value;
+      localStorage.setItem(`employee-profile-${employeeId}`, JSON.stringify(nextData));
+
+      return nextData;
+    });
+  };
+
+  if (!employeeData) {
     return (
       <div className="page">
         <Header />
@@ -99,32 +133,38 @@ function EmployeePage() {
       <Header />
       <main className="content">
         <Link to="/" className="back-link">← Назад к таблице</Link>
-        <EmployeeProfile employee={employee} onDownloadCv={() => downloadCv(employee)} />
+        <EmployeeProfile
+          employee={employeeData}
+          isEditMode={isEditMode}
+          onToggleEditMode={() => setIsEditMode((previous) => !previous)}
+          onFieldChange={updateEmployeeField}
+          onDownloadCv={() => downloadCv(employeeData)}
+        />
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === 'profile' && (
           <section className="tab-content">
             <h2>Сфера деятельности</h2>
-            <p><strong>Навыки:</strong> {employee.activity.skills}</p>
-            <p><strong>Опыт работы:</strong> {employee.activity.experience}</p>
-            <p><strong>Дата начала работы:</strong> {employee.activity.startDate}</p>
-            <p><strong>Проекты / зоны ответственности:</strong> {employee.activity.projects}</p>
+            <p><strong>Навыки:</strong> {employeeData.activity.skills}</p>
+            <p><strong>Опыт работы:</strong> {employeeData.activity.experience}</p>
+            <p><strong>Дата начала работы:</strong> {employeeData.activity.startDate}</p>
+            <p><strong>Проекты / зоны ответственности:</strong> {employeeData.activity.projects}</p>
 
             <h2>Административное</h2>
-            <p><strong>Тип договора:</strong> {employee.admin.contractType}</p>
-            <p><strong>Срок окончания договора:</strong> {employee.admin.contractEndDate}</p>
+            <p><strong>Тип договора:</strong> {employeeData.admin.contractType}</p>
+            <p><strong>Срок окончания договора:</strong> {employeeData.admin.contractEndDate}</p>
 
             <h2>Руководитель в ОИЯИ</h2>
-            <p><strong>Лаборатория:</strong> {employee.supervisors.jinr.laboratory}</p>
-            <p><strong>Должность:</strong> {employee.supervisors.jinr.position}</p>
-            <p><strong>Email:</strong> {employee.supervisors.jinr.email}</p>
-            <p><strong>Телефон:</strong> {employee.supervisors.jinr.phone}</p>
+            <p><strong>Лаборатория:</strong> {employeeData.supervisors.jinr.laboratory}</p>
+            <p><strong>Должность:</strong> {employeeData.supervisors.jinr.position}</p>
+            <p><strong>Email:</strong> {employeeData.supervisors.jinr.email}</p>
+            <p><strong>Телефон:</strong> {employeeData.supervisors.jinr.phone}</p>
 
             <h2>Руководитель в Казахстане</h2>
-            <p><strong>Лаборатория:</strong> {employee.supervisors.kazakhstan.laboratory}</p>
-            <p><strong>Должность:</strong> {employee.supervisors.kazakhstan.position}</p>
-            <p><strong>Email:</strong> {employee.supervisors.kazakhstan.email}</p>
-            <p><strong>Телефон:</strong> {employee.supervisors.kazakhstan.phone}</p>
+            <p><strong>Лаборатория:</strong> {employeeData.supervisors.kazakhstan.laboratory}</p>
+            <p><strong>Должность:</strong> {employeeData.supervisors.kazakhstan.position}</p>
+            <p><strong>Email:</strong> {employeeData.supervisors.kazakhstan.email}</p>
+            <p><strong>Телефон:</strong> {employeeData.supervisors.kazakhstan.phone}</p>
           </section>
         )}
 
@@ -141,7 +181,7 @@ function EmployeePage() {
                 </tr>
               </thead>
               <tbody>
-                {employee.publications.map((publication) => (
+                {employeeData.publications.map((publication) => (
                   <tr key={`${publication.year}-${publication.title}-${publication.doi}`}>
                     <td>{publication.year}</td>
                     <td>{publication.title}</td>
@@ -157,13 +197,13 @@ function EmployeePage() {
 
         {activeTab === 'jinrActivity' && (
           <section className="tab-content">
-            <p>{employee.jinrActivity}</p>
+            <p>{employeeData.jinrActivity}</p>
           </section>
         )}
 
         {activeTab === 'kazakhstanActivity' && (
           <section className="tab-content">
-            <p>{employee.kazakhstanActivity}</p>
+            <p>{employeeData.kazakhstanActivity}</p>
           </section>
         )}
       </main>
