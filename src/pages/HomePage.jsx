@@ -3,6 +3,7 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import EmployeeTable from '../components/EmployeeTable';
 import { employees } from '../data/employees';
+import { employeeMatchesFilters } from '../utils/employees';
 
 const defaultFilters = {
   fullName: '',
@@ -11,36 +12,32 @@ const defaultFilters = {
   contractEndYear: ''
 };
 
-function getContractEndYear(contractEndDate) {
-  const match = contractEndDate.match(/\d{4}/);
-  return match ? match[0] : '';
-}
-
 function HomePage() {
   const [filters, setFilters] = useState(defaultFilters);
 
   const filteredEmployees = useMemo(() => {
-    return employees.filter((employee) => {
-      const contractEndYear = getContractEndYear(employee.admin.contractEndDate);
-
-      return (
-        employee.fullName.toLowerCase().includes(filters.fullName.toLowerCase()) &&
-        employee.position.toLowerCase().includes(filters.position.toLowerCase()) &&
-        employee.laboratory.toLowerCase().includes(filters.laboratory.toLowerCase()) &&
-        contractEndYear.includes(filters.contractEndYear.trim())
-      );
-    });
+    return employees.filter((employee) => employeeMatchesFilters(employee, filters));
   }, [filters]);
 
   const handleFilterChange = (field, value) => {
     setFilters((current) => ({ ...current, [field]: value }));
   };
 
+  const handleResetFilters = () => {
+    setFilters(defaultFilters);
+  };
+
   return (
     <div className="page">
       <Header />
       <main className="content">
-        <SearchBar filters={filters} onFilterChange={handleFilterChange} />
+        <SearchBar
+          filters={filters}
+          resultCount={filteredEmployees.length}
+          totalCount={employees.length}
+          onFilterChange={handleFilterChange}
+          onReset={handleResetFilters}
+        />
         <EmployeeTable employees={filteredEmployees} />
       </main>
     </div>

@@ -1,105 +1,147 @@
-function calculateAge(birthDate) {
-  const dateOfBirth = new Date(birthDate);
+import {
+  buildMailTo,
+  buildProfileLink,
+  buildTelLink,
+  calculateAge,
+  formatDate,
+  getInitials
+} from '../utils/employees';
 
-  if (Number.isNaN(dateOfBirth.getTime())) {
-    return null;
+function ContactLink({ href, children }) {
+  if (!href || !children) {
+    return '—';
   }
 
-  const today = new Date();
-  let age = today.getFullYear() - dateOfBirth.getFullYear();
-  const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
-    age -= 1;
-  }
-
-  return age;
+  return <a href={href}>{children}</a>;
 }
 
-function buildProfileLink(type, id) {
-  if (!id) {
-    return null;
+function ProfileLink({ type, id }) {
+  const href = buildProfileLink(type, id);
+
+  if (!href) {
+    return '—';
   }
-
-  const trimmedId = id.trim();
-
-  if (type === 'scopus') {
-    return `https://www.scopus.com/authid/detail.uri?authorId=${encodeURIComponent(trimmedId)}`;
-  }
-
-  if (type === 'wos') {
-    return `https://www.webofscience.com/wos/author/record/${encodeURIComponent(trimmedId)}`;
-  }
-
-  return `https://orcid.org/${encodeURIComponent(trimmedId)}`;
-}
-
-function EmployeeProfile({ employee, isEditMode, onFieldChange, onDownloadCv }) {
-  const age = calculateAge(employee.birthDate);
-
-  const renderTextField = (label, value, key) => (
-    <p>
-      <strong>{label}:</strong>{' '}
-      {isEditMode ? (
-        <input value={value} onChange={(event) => onFieldChange(key, event.target.value)} />
-      ) : value}
-    </p>
-  );
 
   return (
-    <section className="profile-card">
-      <div className="profile-photo" aria-label="Фото сотрудника">
-        👤
+    <a href={href} target="_blank" rel="noreferrer">
+      {id}
+    </a>
+  );
+}
+
+function EditableValue({ isEditMode, path, value, displayValue, onFieldChange, ariaLabel }) {
+  if (isEditMode && path) {
+    return (
+      <input
+        className="inline-field"
+        aria-label={ariaLabel}
+        value={value ?? ''}
+        onChange={(event) => onFieldChange(path, event.target.value)}
+      />
+    );
+  }
+
+  return displayValue || value || '—';
+}
+
+function EmployeeProfile({ employee, isEditMode = false, onFieldChange, onDownloadCv }) {
+  const age = calculateAge(employee.birthDate);
+  const primaryFields = [
+    { label: 'Должность', path: 'position', value: employee.position },
+    { label: 'Лаборатория', path: 'laboratory', value: employee.laboratory },
+    {
+      label: 'Дата рождения',
+      path: 'birthDate',
+      value: employee.birthDate,
+      displayValue: formatDate(employee.birthDate)
+    },
+    { label: 'Возраст', value: age ?? '—' },
+    {
+      label: 'Телефон',
+      path: 'phone',
+      value: employee.phone,
+      displayValue: <ContactLink href={buildTelLink(employee.phone)}>{employee.phone}</ContactLink>
+    },
+    {
+      label: 'Email',
+      path: 'email',
+      value: employee.email,
+      displayValue: <ContactLink href={buildMailTo(employee.email)}>{employee.email}</ContactLink>
+    },
+    {
+      label: 'Scopus ID',
+      path: 'scopusId',
+      value: employee.scopusId,
+      displayValue: <ProfileLink type="scopus" id={employee.scopusId} />
+    },
+    {
+      label: 'Web of Science ID',
+      path: 'wosId',
+      value: employee.wosId,
+      displayValue: <ProfileLink type="wos" id={employee.wosId} />
+    },
+    {
+      label: 'ORCID ID',
+      path: 'orcidId',
+      value: employee.orcidId,
+      displayValue: <ProfileLink type="orcid" id={employee.orcidId} />
+    },
+    {
+      label: 'Ученая степень',
+      path: 'academicDegree.degree',
+      value: employee.academicDegree.degree
+    },
+    {
+      label: 'Год получения степени',
+      path: 'academicDegree.year',
+      value: employee.academicDegree.year
+    },
+    {
+      label: 'Место защиты',
+      path: 'academicDegree.defensePlace',
+      value: employee.academicDegree.defensePlace
+    }
+  ];
+
+  return (
+    <section className="profile-card" aria-labelledby="employee-profile-title">
+      <div className="profile-aside">
+        <div className="profile-photo" aria-hidden="true">
+          {getInitials(employee.fullName)}
+        </div>
+        <button type="button" className="primary-button" onClick={onDownloadCv}>
+          Скачать CV
+        </button>
       </div>
       <div className="profile-details">
         {isEditMode ? (
           <input
+            id="employee-profile-title"
             className="name-input"
+            aria-label="ФИО"
             value={employee.fullName}
             onChange={(event) => onFieldChange('fullName', event.target.value)}
           />
         ) : (
-          <h1>{employee.fullName}</h1>
+          <h1 id="employee-profile-title">{employee.fullName}</h1>
         )}
-        {renderTextField('Должность', employee.position, 'position')}
-        {renderTextField('Лаборатория', employee.laboratory, 'laboratory')}
-        {renderTextField('Дата рождения', employee.birthDate, 'birthDate')}
-        <p><strong>Возраст:</strong> {age ?? '—'}</p>
-        {renderTextField('Телефон', employee.phone, 'phone')}
-        {renderTextField('Email', employee.email, 'email')}
-        {renderTextField('Scopus ID', employee.scopusId, 'scopusId')}
-        {!isEditMode && (
-          <p>
-            <strong>Scopus:</strong>{' '}
-            <a href={buildProfileLink('scopus', employee.scopusId)} target="_blank" rel="noreferrer">
-              Открыть профиль
-            </a>
-          </p>
-        )}
-        {renderTextField('Web of Science ID', employee.wosId, 'wosId')}
-        {!isEditMode && (
-          <p>
-            <strong>Web of Science:</strong>{' '}
-            <a href={buildProfileLink('wos', employee.wosId)} target="_blank" rel="noreferrer">
-              Открыть профиль
-            </a>
-          </p>
-        )}
-        {renderTextField('ORCID ID', employee.orcidId, 'orcidId')}
-        {!isEditMode && (
-          <p>
-            <strong>ORCID:</strong>{' '}
-            <a href={buildProfileLink('orcid', employee.orcidId)} target="_blank" rel="noreferrer">
-              Открыть профиль
-            </a>
-          </p>
-        )}
-        {renderTextField('Ученая степень', employee.academicDegree.degree, 'academicDegree.degree')}
-        {renderTextField('Год получения степени', employee.academicDegree.year, 'academicDegree.year')}
-        {renderTextField('Место защиты', employee.academicDegree.defensePlace, 'academicDegree.defensePlace')}
-        <button type="button" className="search-button" onClick={onDownloadCv}>
-          Скачать CV
-        </button>
+        <dl className="profile-meta">
+          {primaryFields.map((field) => (
+            <div key={field.label} className="profile-meta-row">
+              <dt>{field.label}</dt>
+              <dd>
+                <EditableValue
+                  isEditMode={isEditMode}
+                  path={field.path}
+                  value={field.value}
+                  displayValue={field.displayValue}
+                  onFieldChange={onFieldChange}
+                  ariaLabel={field.label}
+                />
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

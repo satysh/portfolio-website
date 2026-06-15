@@ -2,8 +2,11 @@ import { Link, useParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import Header from '../components/Header';
 import EmployeeProfile from '../components/EmployeeProfile';
+import InfoSection from '../components/InfoSection';
+import PublicationsTable from '../components/PublicationsTable';
 import Tabs from '../components/Tabs';
 import { employees } from '../data/employees';
+import { downloadEmployeeCv } from '../utils/cv';
 
 const tabs = [
   { id: 'profile', label: 'Анкета' },
@@ -12,92 +15,49 @@ const tabs = [
   { id: 'kazakhstanActivity', label: 'Деятельность в Казахстане' }
 ];
 
-function buildCvMarkdown(employee) {
-  return `# CV: ${employee.fullName}
+const defaultEditModes = {
+  profile: false,
+  publications: false,
+  jinrActivity: false,
+  kazakhstanActivity: false
+};
 
-## Основная информация
-- **ФИО:** ${employee.fullName}
-- **Должность:** ${employee.position}
-- **Лаборатория:** ${employee.laboratory}
-- **Дата рождения:** ${employee.birthDate}
-- **Email:** ${employee.email}
-- **Телефон:** ${employee.phone}
+function cloneData(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
 
-## Научные профили
-- **Scopus ID:** ${employee.scopusId}
-- **Web of Science ID:** ${employee.wosId}
-- **ORCID ID:** ${employee.orcidId}
-
-## Научная квалификация
-- **Ученая степень:** ${employee.academicDegree.degree}
-- **Год получения степени:** ${employee.academicDegree.year}
-- **Место защиты:** ${employee.academicDegree.defensePlace}
-
-## Сфера деятельности
-- **Навыки:** ${employee.activity.skills}
-- **Опыт работы:** ${employee.activity.experience}
-- **Дата начала работы:** ${employee.activity.startDate}
-- **Проекты / зоны ответственности:** ${employee.activity.projects}
-
-## Деятельность в ОИЯИ
-${employee.jinrActivity}
-
-## Деятельность в Казахстане
-${employee.kazakhstanActivity}
-
-## Руководитель в ОИЯИ
-- **Лаборатория:** ${employee.supervisors.jinr.laboratory}
-- **Должность:** ${employee.supervisors.jinr.position}
-- **Email:** ${employee.supervisors.jinr.email}
-- **Телефон:** ${employee.supervisors.jinr.phone}
-
-## Руководитель в Казахстане
-- **Лаборатория:** ${employee.supervisors.kazakhstan.laboratory}
-- **Должность:** ${employee.supervisors.kazakhstan.position}
-- **Email:** ${employee.supervisors.kazakhstan.email}
-- **Телефон:** ${employee.supervisors.kazakhstan.phone}
-`;
+  return JSON.parse(JSON.stringify(value));
 }
 
-function downloadCv(employee) {
-  const markdown = buildCvMarkdown(employee);
-  const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+function loadEmployeeOverride(employeeId, employee) {
+  if (!employeeId || !employee) {
+    return employee ?? null;
+  }
 
-  link.href = url;
-  link.download = `${employee.id}-cv.md`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    const localData = localStorage.getItem(`employee-profile-${employeeId}`);
+    return localData ? JSON.parse(localData) : employee;
+  } catch {
+    return employee;
+  }
 }
 
 function EmployeePage() {
   const { employeeId } = useParams();
   const [activeTab, setActiveTab] = useState('profile');
-  const [editModes, setEditModes] = useState({
-    profile: false,
-    publications: false,
-    jinrActivity: false,
-    kazakhstanActivity: false
-  });
+  const [editModes, setEditModes] = useState(defaultEditModes);
 
   const employee = useMemo(
     () => employees.find((item) => item.id === employeeId),
     [employeeId]
   );
 
-  const [employeeData, setEmployeeData] = useState(employee);
+  const [employeeData, setEmployeeData] = useState(() => loadEmployeeOverride(employeeId, employee));
 
   useEffect(() => {
-    if (!employeeId || !employee) {
-      setEmployeeData(employee);
-      return;
-    }
-
-    const localData = localStorage.getItem(`employee-profile-${employeeId}`);
-    setEmployeeData(localData ? JSON.parse(localData) : employee);
+    setEmployeeData(loadEmployeeOverride(employeeId, employee));
+    setEditModes(defaultEditModes);
   }, [employeeId, employee]);
 
   const toggleEditMode = (sectionId) => {
@@ -114,7 +74,7 @@ function EmployeePage() {
       }
 
       const keys = path.split('.');
-      const nextData = structuredClone(previousData);
+      const nextData = cloneData(previousData);
       let current = nextData;
 
       for (let index = 0; index < keys.length - 1; index += 1) {
@@ -122,7 +82,12 @@ function EmployeePage() {
       }
 
       current[keys.at(-1)] = value;
-      localStorage.setItem(`employee-profile-${employeeId}`, JSON.stringify(nextData));
+
+      try {
+        localStorage.setItem(`employee-profile-${employeeId}`, JSON.stringify(nextData));
+      } catch {
+        // Local edits are best-effort until a backend exists.
+      }
 
       return nextData;
     });
@@ -132,13 +97,76 @@ function EmployeePage() {
     return (
       <div className="page">
         <Header />
-        <main className="content">
-          <p>Сотрудник не найден.</p>
+        <main className="content empty-page">
+          <h1>Сотрудник не найден</h1>
           <Link to="/" className="back-link">Вернуться к списку</Link>
         </main>
       </div>
     );
   }
+
+  const activityItems = [
+    { label: 'Навыки', path: 'activity.skills', value: employeeData.activity.skills },
+    { label: 'Опыт работы', path: 'activity.experience', value: employeeData.activity.experience },
+    { label: 'Дата начала работы', path: 'activity.startDate', value: employeeData.activity.startDate },
+    {
+      label: 'Проекты / зоны ответственности',
+      path: 'activity.projects',
+      value: employeeData.activity.projects
+    }
+  ];
+  const adminItems = [
+    { label: 'Тип договора', path: 'admin.contractType', value: employeeData.admin.contractType },
+    {
+      label: 'Срок окончания договора',
+      path: 'admin.contractEndDate',
+      value: employeeData.admin.contractEndDate
+    }
+  ];
+  const jinrSupervisorItems = [
+    {
+      label: 'Лаборатория',
+      path: 'supervisors.jinr.laboratory',
+      value: employeeData.supervisors.jinr.laboratory
+    },
+    {
+      label: 'Должность',
+      path: 'supervisors.jinr.position',
+      value: employeeData.supervisors.jinr.position
+    },
+    {
+      label: 'Email',
+      path: 'supervisors.jinr.email',
+      value: employeeData.supervisors.jinr.email
+    },
+    {
+      label: 'Телефон',
+      path: 'supervisors.jinr.phone',
+      value: employeeData.supervisors.jinr.phone
+    }
+  ];
+  const kazakhstanSupervisorItems = [
+    {
+      label: 'Лаборатория',
+      path: 'supervisors.kazakhstan.laboratory',
+      value: employeeData.supervisors.kazakhstan.laboratory
+    },
+    {
+      label: 'Должность',
+      path: 'supervisors.kazakhstan.position',
+      value: employeeData.supervisors.kazakhstan.position
+    },
+    {
+      label: 'Email',
+      path: 'supervisors.kazakhstan.email',
+      value: employeeData.supervisors.kazakhstan.email
+    },
+    {
+      label: 'Телефон',
+      path: 'supervisors.kazakhstan.phone',
+      value: employeeData.supervisors.kazakhstan.phone
+    }
+  ];
 
   return (
     <div className="page">
@@ -146,103 +174,85 @@ function EmployeePage() {
       <main className="content">
         <div className="employee-page-header">
           <Link to="/" className="back-link">← Назад к таблице</Link>
-          <button type="button" className="edit-mode-button" onClick={() => toggleEditMode(activeTab)}>
-            {editModes[activeTab] ? 'Done' : 'Edit'}
+          <button type="button" className="secondary-button" onClick={() => toggleEditMode(activeTab)}>
+            {editModes[activeTab] ? 'Готово' : 'Редактировать'}
           </button>
         </div>
+
         <EmployeeProfile
           employee={employeeData}
           isEditMode={editModes.profile}
           onFieldChange={updateEmployeeField}
-          onDownloadCv={() => downloadCv(employeeData)}
+          onDownloadCv={() => downloadEmployeeCv(employeeData)}
         />
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === 'profile' && (
-          <section className="tab-content">
-            <h2>Сфера деятельности</h2>
-            <p><strong>Навыки:</strong> {editModes.profile ? (
-              <input value={employeeData.activity.skills} onChange={(event) => updateEmployeeField('activity.skills', event.target.value)} />
-            ) : employeeData.activity.skills}</p>
-            <p><strong>Опыт работы:</strong> {editModes.profile ? (
-              <input value={employeeData.activity.experience} onChange={(event) => updateEmployeeField('activity.experience', event.target.value)} />
-            ) : employeeData.activity.experience}</p>
-            <p><strong>Дата начала работы:</strong> {editModes.profile ? (
-              <input value={employeeData.activity.startDate} onChange={(event) => updateEmployeeField('activity.startDate', event.target.value)} />
-            ) : employeeData.activity.startDate}</p>
-            <p><strong>Проекты / зоны ответственности:</strong> {editModes.profile ? (
-              <input value={employeeData.activity.projects} onChange={(event) => updateEmployeeField('activity.projects', event.target.value)} />
-            ) : employeeData.activity.projects}</p>
-
-            <h2>Административное</h2>
-            <p><strong>Тип договора:</strong> {editModes.profile ? (
-              <input value={employeeData.admin.contractType} onChange={(event) => updateEmployeeField('admin.contractType', event.target.value)} />
-            ) : employeeData.admin.contractType}</p>
-            <p><strong>Срок окончания договора:</strong> {editModes.profile ? (
-              <input value={employeeData.admin.contractEndDate} onChange={(event) => updateEmployeeField('admin.contractEndDate', event.target.value)} />
-            ) : employeeData.admin.contractEndDate}</p>
-
-            <h2>Руководитель в ОИЯИ</h2>
-            <p><strong>Лаборатория:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.jinr.laboratory} onChange={(event) => updateEmployeeField('supervisors.jinr.laboratory', event.target.value)} />
-            ) : employeeData.supervisors.jinr.laboratory}</p>
-            <p><strong>Должность:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.jinr.position} onChange={(event) => updateEmployeeField('supervisors.jinr.position', event.target.value)} />
-            ) : employeeData.supervisors.jinr.position}</p>
-            <p><strong>Email:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.jinr.email} onChange={(event) => updateEmployeeField('supervisors.jinr.email', event.target.value)} />
-            ) : employeeData.supervisors.jinr.email}</p>
-            <p><strong>Телефон:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.jinr.phone} onChange={(event) => updateEmployeeField('supervisors.jinr.phone', event.target.value)} />
-            ) : employeeData.supervisors.jinr.phone}</p>
-
-            <h2>Руководитель в Казахстане</h2>
-            <p><strong>Лаборатория:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.kazakhstan.laboratory} onChange={(event) => updateEmployeeField('supervisors.kazakhstan.laboratory', event.target.value)} />
-            ) : employeeData.supervisors.kazakhstan.laboratory}</p>
-            <p><strong>Должность:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.kazakhstan.position} onChange={(event) => updateEmployeeField('supervisors.kazakhstan.position', event.target.value)} />
-            ) : employeeData.supervisors.kazakhstan.position}</p>
-            <p><strong>Email:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.kazakhstan.email} onChange={(event) => updateEmployeeField('supervisors.kazakhstan.email', event.target.value)} />
-            ) : employeeData.supervisors.kazakhstan.email}</p>
-            <p><strong>Телефон:</strong> {editModes.profile ? (
-              <input value={employeeData.supervisors.kazakhstan.phone} onChange={(event) => updateEmployeeField('supervisors.kazakhstan.phone', event.target.value)} />
-            ) : employeeData.supervisors.kazakhstan.phone}</p>
+          <section
+            id="panel-profile"
+            className="tab-content"
+            role="tabpanel"
+            aria-labelledby="tab-profile"
+          >
+            <div className="detail-grid">
+              <InfoSection
+                title="Сфера деятельности"
+                items={activityItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Административное"
+                items={adminItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Руководитель в ОИЯИ"
+                items={jinrSupervisorItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Руководитель в Казахстане"
+                items={kazakhstanSupervisorItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+            </div>
           </section>
         )}
 
         {activeTab === 'publications' && (
-          <section className="tab-content">
-            <table>
-              <thead>
-                <tr>
-                  <th>Год</th>
-                  <th>Название статьи</th>
-                  <th>Авторы</th>
-                  <th>Журнал</th>
-                  <th>DOI</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employeeData.publications.map((publication, index) => (
-                  <tr key={`${publication.year}-${publication.title}-${publication.doi}`}>
-                    <td>{editModes.publications ? (<input value={publication.year} onChange={(event) => updateEmployeeField(`publications.${index}.year`, event.target.value)} />) : publication.year}</td>
-                    <td>{editModes.publications ? (<input value={publication.title} onChange={(event) => updateEmployeeField(`publications.${index}.title`, event.target.value)} />) : publication.title}</td>
-                    <td>{editModes.publications ? (<input value={publication.authors} onChange={(event) => updateEmployeeField(`publications.${index}.authors`, event.target.value)} />) : publication.authors}</td>
-                    <td>{editModes.publications ? (<input value={publication.journal} onChange={(event) => updateEmployeeField(`publications.${index}.journal`, event.target.value)} />) : publication.journal}</td>
-                    <td>{editModes.publications ? (<input value={publication.doi} onChange={(event) => updateEmployeeField(`publications.${index}.doi`, event.target.value)} />) : publication.doi}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <section
+            id="panel-publications"
+            className="tab-content"
+            role="tabpanel"
+            aria-labelledby="tab-publications"
+          >
+            <PublicationsTable
+              publications={employeeData.publications}
+              isEditMode={editModes.publications}
+              onFieldChange={updateEmployeeField}
+            />
           </section>
         )}
 
         {activeTab === 'jinrActivity' && (
-          <section className="tab-content">
+          <section
+            id="panel-jinrActivity"
+            className="tab-content prose"
+            role="tabpanel"
+            aria-labelledby="tab-jinrActivity"
+          >
             {editModes.jinrActivity ? (
-              <textarea value={employeeData.jinrActivity} onChange={(event) => updateEmployeeField('jinrActivity', event.target.value)} rows={6} />
+              <textarea
+                className="inline-textarea"
+                aria-label="Деятельность в ОИЯИ"
+                value={employeeData.jinrActivity}
+                onChange={(event) => updateEmployeeField('jinrActivity', event.target.value)}
+                rows={6}
+              />
             ) : (
               <p>{employeeData.jinrActivity}</p>
             )}
@@ -250,9 +260,20 @@ function EmployeePage() {
         )}
 
         {activeTab === 'kazakhstanActivity' && (
-          <section className="tab-content">
+          <section
+            id="panel-kazakhstanActivity"
+            className="tab-content prose"
+            role="tabpanel"
+            aria-labelledby="tab-kazakhstanActivity"
+          >
             {editModes.kazakhstanActivity ? (
-              <textarea value={employeeData.kazakhstanActivity} onChange={(event) => updateEmployeeField('kazakhstanActivity', event.target.value)} rows={6} />
+              <textarea
+                className="inline-textarea"
+                aria-label="Деятельность в Казахстане"
+                value={employeeData.kazakhstanActivity}
+                onChange={(event) => updateEmployeeField('kazakhstanActivity', event.target.value)}
+                rows={6}
+              />
             ) : (
               <p>{employeeData.kazakhstanActivity}</p>
             )}
