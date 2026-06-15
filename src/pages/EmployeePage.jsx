@@ -2,8 +2,11 @@ import { Link, useParams } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import Header from '../components/Header';
 import EmployeeProfile from '../components/EmployeeProfile';
+import InfoSection from '../components/InfoSection';
+import PublicationsTable from '../components/PublicationsTable';
 import Tabs from '../components/Tabs';
 import { employees } from '../data/employees';
+import { downloadEmployeeCv } from '../utils/cv';
 
 const tabs = [
   { id: 'profile', label: 'Анкета' },
@@ -11,67 +14,6 @@ const tabs = [
   { id: 'jinrActivity', label: 'Деятельность в ОИЯИ' },
   { id: 'kazakhstanActivity', label: 'Деятельность в Казахстане' }
 ];
-
-function buildCvMarkdown(employee) {
-  return `# CV: ${employee.fullName}
-
-## Основная информация
-- **ФИО:** ${employee.fullName}
-- **Должность:** ${employee.position}
-- **Лаборатория:** ${employee.laboratory}
-- **Дата рождения:** ${employee.birthDate}
-- **Email:** ${employee.email}
-- **Телефон:** ${employee.phone}
-
-## Научные профили
-- **Scopus ID:** ${employee.scopusId}
-- **Web of Science ID:** ${employee.wosId}
-- **ORCID ID:** ${employee.orcidId}
-
-## Научная квалификация
-- **Ученая степень:** ${employee.academicDegree.degree}
-- **Год получения степени:** ${employee.academicDegree.year}
-- **Место защиты:** ${employee.academicDegree.defensePlace}
-
-## Сфера деятельности
-- **Навыки:** ${employee.activity.skills}
-- **Опыт работы:** ${employee.activity.experience}
-- **Дата начала работы:** ${employee.activity.startDate}
-- **Проекты / зоны ответственности:** ${employee.activity.projects}
-
-## Деятельность в ОИЯИ
-${employee.jinrActivity}
-
-## Деятельность в Казахстане
-${employee.kazakhstanActivity}
-
-## Руководитель в ОИЯИ
-- **Лаборатория:** ${employee.supervisors.jinr.laboratory}
-- **Должность:** ${employee.supervisors.jinr.position}
-- **Email:** ${employee.supervisors.jinr.email}
-- **Телефон:** ${employee.supervisors.jinr.phone}
-
-## Руководитель в Казахстане
-- **Лаборатория:** ${employee.supervisors.kazakhstan.laboratory}
-- **Должность:** ${employee.supervisors.kazakhstan.position}
-- **Email:** ${employee.supervisors.kazakhstan.email}
-- **Телефон:** ${employee.supervisors.kazakhstan.phone}
-`;
-}
-
-function downloadCv(employee) {
-  const markdown = buildCvMarkdown(employee);
-  const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-
-  link.href = url;
-  link.download = `${employee.id}-cv.md`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-}
 
 function EmployeePage() {
   const { employeeId } = useParams();
@@ -86,83 +28,90 @@ function EmployeePage() {
     return (
       <div className="page">
         <Header />
-        <main className="content">
-          <p>Сотрудник не найден.</p>
+        <main className="content empty-page">
+          <h1>Сотрудник не найден</h1>
           <Link to="/" className="back-link">Вернуться к списку</Link>
         </main>
       </div>
     );
   }
 
+  const activityItems = [
+    { label: 'Навыки', value: employee.activity.skills },
+    { label: 'Опыт работы', value: employee.activity.experience },
+    { label: 'Дата начала работы', value: employee.activity.startDate },
+    { label: 'Проекты / зоны ответственности', value: employee.activity.projects }
+  ];
+  const adminItems = [
+    { label: 'Тип договора', value: employee.admin.contractType },
+    { label: 'Срок окончания договора', value: employee.admin.contractEndDate }
+  ];
+  const jinrSupervisorItems = [
+    { label: 'Лаборатория', value: employee.supervisors.jinr.laboratory },
+    { label: 'Должность', value: employee.supervisors.jinr.position },
+    { label: 'Email', value: employee.supervisors.jinr.email },
+    { label: 'Телефон', value: employee.supervisors.jinr.phone }
+  ];
+  const kazakhstanSupervisorItems = [
+    { label: 'Лаборатория', value: employee.supervisors.kazakhstan.laboratory },
+    { label: 'Должность', value: employee.supervisors.kazakhstan.position },
+    { label: 'Email', value: employee.supervisors.kazakhstan.email },
+    { label: 'Телефон', value: employee.supervisors.kazakhstan.phone }
+  ];
+
   return (
     <div className="page">
       <Header />
       <main className="content">
         <Link to="/" className="back-link">← Назад к таблице</Link>
-        <EmployeeProfile employee={employee} onDownloadCv={() => downloadCv(employee)} />
+        <EmployeeProfile employee={employee} onDownloadCv={() => downloadEmployeeCv(employee)} />
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === 'profile' && (
-          <section className="tab-content">
-            <h2>Сфера деятельности</h2>
-            <p><strong>Навыки:</strong> {employee.activity.skills}</p>
-            <p><strong>Опыт работы:</strong> {employee.activity.experience}</p>
-            <p><strong>Дата начала работы:</strong> {employee.activity.startDate}</p>
-            <p><strong>Проекты / зоны ответственности:</strong> {employee.activity.projects}</p>
-
-            <h2>Административное</h2>
-            <p><strong>Тип договора:</strong> {employee.admin.contractType}</p>
-            <p><strong>Срок окончания договора:</strong> {employee.admin.contractEndDate}</p>
-
-            <h2>Руководитель в ОИЯИ</h2>
-            <p><strong>Лаборатория:</strong> {employee.supervisors.jinr.laboratory}</p>
-            <p><strong>Должность:</strong> {employee.supervisors.jinr.position}</p>
-            <p><strong>Email:</strong> {employee.supervisors.jinr.email}</p>
-            <p><strong>Телефон:</strong> {employee.supervisors.jinr.phone}</p>
-
-            <h2>Руководитель в Казахстане</h2>
-            <p><strong>Лаборатория:</strong> {employee.supervisors.kazakhstan.laboratory}</p>
-            <p><strong>Должность:</strong> {employee.supervisors.kazakhstan.position}</p>
-            <p><strong>Email:</strong> {employee.supervisors.kazakhstan.email}</p>
-            <p><strong>Телефон:</strong> {employee.supervisors.kazakhstan.phone}</p>
+          <section
+            id="panel-profile"
+            className="tab-content"
+            role="tabpanel"
+            aria-labelledby="tab-profile"
+          >
+            <div className="detail-grid">
+              <InfoSection title="Сфера деятельности" items={activityItems} />
+              <InfoSection title="Административное" items={adminItems} />
+              <InfoSection title="Руководитель в ОИЯИ" items={jinrSupervisorItems} />
+              <InfoSection title="Руководитель в Казахстане" items={kazakhstanSupervisorItems} />
+            </div>
           </section>
         )}
 
         {activeTab === 'publications' && (
-          <section className="tab-content">
-            <table>
-              <thead>
-                <tr>
-                  <th>Год</th>
-                  <th>Название статьи</th>
-                  <th>Авторы</th>
-                  <th>Журнал</th>
-                  <th>DOI</th>
-                </tr>
-              </thead>
-              <tbody>
-                {employee.publications.map((publication) => (
-                  <tr key={`${publication.year}-${publication.title}-${publication.doi}`}>
-                    <td>{publication.year}</td>
-                    <td>{publication.title}</td>
-                    <td>{publication.authors}</td>
-                    <td>{publication.journal}</td>
-                    <td>{publication.doi}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <section
+            id="panel-publications"
+            className="tab-content"
+            role="tabpanel"
+            aria-labelledby="tab-publications"
+          >
+            <PublicationsTable publications={employee.publications} />
           </section>
         )}
 
         {activeTab === 'jinrActivity' && (
-          <section className="tab-content">
+          <section
+            id="panel-jinrActivity"
+            className="tab-content prose"
+            role="tabpanel"
+            aria-labelledby="tab-jinrActivity"
+          >
             <p>{employee.jinrActivity}</p>
           </section>
         )}
 
         {activeTab === 'kazakhstanActivity' && (
-          <section className="tab-content">
+          <section
+            id="panel-kazakhstanActivity"
+            className="tab-content prose"
+            role="tabpanel"
+            aria-labelledby="tab-kazakhstanActivity"
+          >
             <p>{employee.kazakhstanActivity}</p>
           </section>
         )}

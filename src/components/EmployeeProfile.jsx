@@ -1,79 +1,77 @@
-function calculateAge(birthDate) {
-  const dateOfBirth = new Date(birthDate);
+import {
+  buildMailTo,
+  buildProfileLink,
+  buildTelLink,
+  calculateAge,
+  formatDate,
+  getInitials
+} from '../utils/employees';
 
-  if (Number.isNaN(dateOfBirth.getTime())) {
-    return null;
+function ContactLink({ href, children }) {
+  if (!href || !children) {
+    return '—';
   }
 
-  const today = new Date();
-  let age = today.getFullYear() - dateOfBirth.getFullYear();
-  const monthDiff = today.getMonth() - dateOfBirth.getMonth();
-
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dateOfBirth.getDate())) {
-    age -= 1;
-  }
-
-  return age;
+  return <a href={href}>{children}</a>;
 }
 
-function buildProfileLink(type, id) {
-  if (!id) {
-    return null;
+function ProfileLink({ type, id }) {
+  const href = buildProfileLink(type, id);
+
+  if (!href) {
+    return '—';
   }
 
-  const trimmedId = id.trim();
-
-  if (type === 'scopus') {
-    return `https://www.scopus.com/authid/detail.uri?authorId=${encodeURIComponent(trimmedId)}`;
-  }
-
-  if (type === 'wos') {
-    return `https://www.webofscience.com/wos/author/record/${encodeURIComponent(trimmedId)}`;
-  }
-
-  return `https://orcid.org/${encodeURIComponent(trimmedId)}`;
+  return (
+    <a href={href} target="_blank" rel="noreferrer">
+      {id}
+    </a>
+  );
 }
 
 function EmployeeProfile({ employee, onDownloadCv }) {
   const age = calculateAge(employee.birthDate);
+  const primaryFields = [
+    { label: 'Должность', value: employee.position },
+    { label: 'Лаборатория', value: employee.laboratory },
+    { label: 'Дата рождения', value: formatDate(employee.birthDate) },
+    { label: 'Возраст', value: age ?? '—' },
+    {
+      label: 'Телефон',
+      value: <ContactLink href={buildTelLink(employee.phone)}>{employee.phone}</ContactLink>
+    },
+    {
+      label: 'Email',
+      value: <ContactLink href={buildMailTo(employee.email)}>{employee.email}</ContactLink>
+    },
+    { label: 'Scopus ID', value: <ProfileLink type="scopus" id={employee.scopusId} /> },
+    { label: 'Web of Science ID', value: <ProfileLink type="wos" id={employee.wosId} /> },
+    { label: 'ORCID ID', value: <ProfileLink type="orcid" id={employee.orcidId} /> },
+    { label: 'Ученая степень', value: employee.academicDegree.degree },
+    { label: 'Год получения степени', value: employee.academicDegree.year },
+    { label: 'Место защиты', value: employee.academicDegree.defensePlace }
+  ];
 
   return (
-    <section className="profile-card">
-      <div className="profile-photo" aria-label="Фото сотрудника">
-        👤
-      </div>
-      <div className="profile-details">
-        <h1>{employee.fullName}</h1>
-        <p><strong>Должность:</strong> {employee.position}</p>
-        <p><strong>Лаборатория:</strong> {employee.laboratory}</p>
-        <p><strong>Дата рождения:</strong> {employee.birthDate}</p>
-        <p><strong>Возраст:</strong> {age ?? '—'}</p>
-        <p><strong>Телефон:</strong> {employee.phone}</p>
-        <p><strong>Email:</strong> {employee.email}</p>
-        <p>
-          <strong>Scopus ID:</strong>{' '}
-          <a href={buildProfileLink('scopus', employee.scopusId)} target="_blank" rel="noreferrer">
-            {employee.scopusId}
-          </a>
-        </p>
-        <p>
-          <strong>Web of Science ID:</strong>{' '}
-          <a href={buildProfileLink('wos', employee.wosId)} target="_blank" rel="noreferrer">
-            {employee.wosId}
-          </a>
-        </p>
-        <p>
-          <strong>ORCID ID:</strong>{' '}
-          <a href={buildProfileLink('orcid', employee.orcidId)} target="_blank" rel="noreferrer">
-            {employee.orcidId}
-          </a>
-        </p>
-        <p><strong>Ученая степень:</strong> {employee.academicDegree.degree}</p>
-        <p><strong>Год получения степени:</strong> {employee.academicDegree.year}</p>
-        <p><strong>Место защиты:</strong> {employee.academicDegree.defensePlace}</p>
-        <button type="button" className="search-button" onClick={onDownloadCv}>
+    <section className="profile-card" aria-labelledby="employee-profile-title">
+      <div className="profile-aside">
+        <div className="profile-photo" aria-hidden="true">
+          {getInitials(employee.fullName)}
+        </div>
+        <button type="button" className="primary-button" onClick={onDownloadCv}>
           Скачать CV
         </button>
+      </div>
+      <div className="profile-details">
+        <h1 id="employee-profile-title">{employee.fullName}</h1>
+        <dl className="profile-meta">
+          {primaryFields.map((field) => (
+            <div key={field.label} className="profile-meta-row">
+              <dt>{field.label}</dt>
+              <dd>{field.value || '—'}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );
