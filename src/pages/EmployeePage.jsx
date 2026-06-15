@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Header from '../components/Header';
 import EmployeeProfile from '../components/EmployeeProfile';
 import InfoSection from '../components/InfoSection';
@@ -15,16 +15,85 @@ const tabs = [
   { id: 'kazakhstanActivity', label: 'Деятельность в Казахстане' }
 ];
 
+const defaultEditModes = {
+  profile: false,
+  publications: false,
+  jinrActivity: false,
+  kazakhstanActivity: false
+};
+
+function cloneData(value) {
+  if (typeof structuredClone === 'function') {
+    return structuredClone(value);
+  }
+
+  return JSON.parse(JSON.stringify(value));
+}
+
+function loadEmployeeOverride(employeeId, employee) {
+  if (!employeeId || !employee) {
+    return employee ?? null;
+  }
+
+  try {
+    const localData = localStorage.getItem(`employee-profile-${employeeId}`);
+    return localData ? JSON.parse(localData) : employee;
+  } catch {
+    return employee;
+  }
+}
+
 function EmployeePage() {
   const { employeeId } = useParams();
   const [activeTab, setActiveTab] = useState('profile');
+  const [editModes, setEditModes] = useState(defaultEditModes);
 
   const employee = useMemo(
     () => employees.find((item) => item.id === employeeId),
     [employeeId]
   );
 
-  if (!employee) {
+  const [employeeData, setEmployeeData] = useState(() => loadEmployeeOverride(employeeId, employee));
+
+  useEffect(() => {
+    setEmployeeData(loadEmployeeOverride(employeeId, employee));
+    setEditModes(defaultEditModes);
+  }, [employeeId, employee]);
+
+  const toggleEditMode = (sectionId) => {
+    setEditModes((previous) => ({
+      ...previous,
+      [sectionId]: !previous[sectionId]
+    }));
+  };
+
+  const updateEmployeeField = (path, value) => {
+    setEmployeeData((previousData) => {
+      if (!previousData) {
+        return previousData;
+      }
+
+      const keys = path.split('.');
+      const nextData = cloneData(previousData);
+      let current = nextData;
+
+      for (let index = 0; index < keys.length - 1; index += 1) {
+        current = current[keys[index]];
+      }
+
+      current[keys.at(-1)] = value;
+
+      try {
+        localStorage.setItem(`employee-profile-${employeeId}`, JSON.stringify(nextData));
+      } catch {
+        // Local edits are best-effort until a backend exists.
+      }
+
+      return nextData;
+    });
+  };
+
+  if (!employeeData) {
     return (
       <div className="page">
         <Header />
@@ -37,34 +106,85 @@ function EmployeePage() {
   }
 
   const activityItems = [
-    { label: 'Навыки', value: employee.activity.skills },
-    { label: 'Опыт работы', value: employee.activity.experience },
-    { label: 'Дата начала работы', value: employee.activity.startDate },
-    { label: 'Проекты / зоны ответственности', value: employee.activity.projects }
+    { label: 'Навыки', path: 'activity.skills', value: employeeData.activity.skills },
+    { label: 'Опыт работы', path: 'activity.experience', value: employeeData.activity.experience },
+    { label: 'Дата начала работы', path: 'activity.startDate', value: employeeData.activity.startDate },
+    {
+      label: 'Проекты / зоны ответственности',
+      path: 'activity.projects',
+      value: employeeData.activity.projects
+    }
   ];
   const adminItems = [
-    { label: 'Тип договора', value: employee.admin.contractType },
-    { label: 'Срок окончания договора', value: employee.admin.contractEndDate }
+    { label: 'Тип договора', path: 'admin.contractType', value: employeeData.admin.contractType },
+    {
+      label: 'Срок окончания договора',
+      path: 'admin.contractEndDate',
+      value: employeeData.admin.contractEndDate
+    }
   ];
   const jinrSupervisorItems = [
-    { label: 'Лаборатория', value: employee.supervisors.jinr.laboratory },
-    { label: 'Должность', value: employee.supervisors.jinr.position },
-    { label: 'Email', value: employee.supervisors.jinr.email },
-    { label: 'Телефон', value: employee.supervisors.jinr.phone }
+    {
+      label: 'Лаборатория',
+      path: 'supervisors.jinr.laboratory',
+      value: employeeData.supervisors.jinr.laboratory
+    },
+    {
+      label: 'Должность',
+      path: 'supervisors.jinr.position',
+      value: employeeData.supervisors.jinr.position
+    },
+    {
+      label: 'Email',
+      path: 'supervisors.jinr.email',
+      value: employeeData.supervisors.jinr.email
+    },
+    {
+      label: 'Телефон',
+      path: 'supervisors.jinr.phone',
+      value: employeeData.supervisors.jinr.phone
+    }
   ];
   const kazakhstanSupervisorItems = [
-    { label: 'Лаборатория', value: employee.supervisors.kazakhstan.laboratory },
-    { label: 'Должность', value: employee.supervisors.kazakhstan.position },
-    { label: 'Email', value: employee.supervisors.kazakhstan.email },
-    { label: 'Телефон', value: employee.supervisors.kazakhstan.phone }
+    {
+      label: 'Лаборатория',
+      path: 'supervisors.kazakhstan.laboratory',
+      value: employeeData.supervisors.kazakhstan.laboratory
+    },
+    {
+      label: 'Должность',
+      path: 'supervisors.kazakhstan.position',
+      value: employeeData.supervisors.kazakhstan.position
+    },
+    {
+      label: 'Email',
+      path: 'supervisors.kazakhstan.email',
+      value: employeeData.supervisors.kazakhstan.email
+    },
+    {
+      label: 'Телефон',
+      path: 'supervisors.kazakhstan.phone',
+      value: employeeData.supervisors.kazakhstan.phone
+    }
   ];
 
   return (
     <div className="page">
       <Header />
       <main className="content">
-        <Link to="/" className="back-link">← Назад к таблице</Link>
-        <EmployeeProfile employee={employee} onDownloadCv={() => downloadEmployeeCv(employee)} />
+        <div className="employee-page-header">
+          <Link to="/" className="back-link">← Назад к таблице</Link>
+          <button type="button" className="secondary-button" onClick={() => toggleEditMode(activeTab)}>
+            {editModes[activeTab] ? 'Готово' : 'Редактировать'}
+          </button>
+        </div>
+
+        <EmployeeProfile
+          employee={employeeData}
+          isEditMode={editModes.profile}
+          onFieldChange={updateEmployeeField}
+          onDownloadCv={() => downloadEmployeeCv(employeeData)}
+        />
         <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {activeTab === 'profile' && (
@@ -75,10 +195,30 @@ function EmployeePage() {
             aria-labelledby="tab-profile"
           >
             <div className="detail-grid">
-              <InfoSection title="Сфера деятельности" items={activityItems} />
-              <InfoSection title="Административное" items={adminItems} />
-              <InfoSection title="Руководитель в ОИЯИ" items={jinrSupervisorItems} />
-              <InfoSection title="Руководитель в Казахстане" items={kazakhstanSupervisorItems} />
+              <InfoSection
+                title="Сфера деятельности"
+                items={activityItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Административное"
+                items={adminItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Руководитель в ОИЯИ"
+                items={jinrSupervisorItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
+              <InfoSection
+                title="Руководитель в Казахстане"
+                items={kazakhstanSupervisorItems}
+                isEditMode={editModes.profile}
+                onFieldChange={updateEmployeeField}
+              />
             </div>
           </section>
         )}
@@ -90,7 +230,11 @@ function EmployeePage() {
             role="tabpanel"
             aria-labelledby="tab-publications"
           >
-            <PublicationsTable publications={employee.publications} />
+            <PublicationsTable
+              publications={employeeData.publications}
+              isEditMode={editModes.publications}
+              onFieldChange={updateEmployeeField}
+            />
           </section>
         )}
 
@@ -101,7 +245,17 @@ function EmployeePage() {
             role="tabpanel"
             aria-labelledby="tab-jinrActivity"
           >
-            <p>{employee.jinrActivity}</p>
+            {editModes.jinrActivity ? (
+              <textarea
+                className="inline-textarea"
+                aria-label="Деятельность в ОИЯИ"
+                value={employeeData.jinrActivity}
+                onChange={(event) => updateEmployeeField('jinrActivity', event.target.value)}
+                rows={6}
+              />
+            ) : (
+              <p>{employeeData.jinrActivity}</p>
+            )}
           </section>
         )}
 
@@ -112,7 +266,17 @@ function EmployeePage() {
             role="tabpanel"
             aria-labelledby="tab-kazakhstanActivity"
           >
-            <p>{employee.kazakhstanActivity}</p>
+            {editModes.kazakhstanActivity ? (
+              <textarea
+                className="inline-textarea"
+                aria-label="Деятельность в Казахстане"
+                value={employeeData.kazakhstanActivity}
+                onChange={(event) => updateEmployeeField('kazakhstanActivity', event.target.value)}
+                rows={6}
+              />
+            ) : (
+              <p>{employeeData.kazakhstanActivity}</p>
+            )}
           </section>
         )}
       </main>

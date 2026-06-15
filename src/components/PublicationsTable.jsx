@@ -8,7 +8,24 @@ function buildDoiLink(doi) {
   return `https://doi.org/${value.replace(/^https?:\/\/(dx\.)?doi\.org\//i, '')}`;
 }
 
-function PublicationsTable({ publications }) {
+function EditableCell({ label, value, path, isEditMode, onFieldChange, children }) {
+  return (
+    <td data-label={label}>
+      {isEditMode ? (
+        <input
+          className="table-input"
+          aria-label={label}
+          value={value ?? ''}
+          onChange={(event) => onFieldChange(path, event.target.value)}
+        />
+      ) : (
+        children ?? value ?? '—'
+      )}
+    </td>
+  );
+}
+
+function PublicationsTable({ publications, isEditMode = false, onFieldChange }) {
   if (!publications.length) {
     return <p className="empty-state">Публикации не указаны.</p>;
   }
@@ -27,16 +44,46 @@ function PublicationsTable({ publications }) {
           </tr>
         </thead>
         <tbody>
-          {publications.map((publication) => {
+          {publications.map((publication, index) => {
             const doiLink = buildDoiLink(publication.doi);
 
             return (
               <tr key={`${publication.year}-${publication.title}-${publication.doi}`}>
-                <td>{publication.year}</td>
-                <td>{publication.title}</td>
-                <td>{publication.authors}</td>
-                <td>{publication.journal}</td>
-                <td>
+                <EditableCell
+                  label="Год"
+                  value={publication.year}
+                  path={`publications.${index}.year`}
+                  isEditMode={isEditMode}
+                  onFieldChange={onFieldChange}
+                />
+                <EditableCell
+                  label="Название статьи"
+                  value={publication.title}
+                  path={`publications.${index}.title`}
+                  isEditMode={isEditMode}
+                  onFieldChange={onFieldChange}
+                />
+                <EditableCell
+                  label="Авторы"
+                  value={publication.authors}
+                  path={`publications.${index}.authors`}
+                  isEditMode={isEditMode}
+                  onFieldChange={onFieldChange}
+                />
+                <EditableCell
+                  label="Журнал"
+                  value={publication.journal}
+                  path={`publications.${index}.journal`}
+                  isEditMode={isEditMode}
+                  onFieldChange={onFieldChange}
+                />
+                <EditableCell
+                  label="DOI"
+                  value={publication.doi}
+                  path={`publications.${index}.doi`}
+                  isEditMode={isEditMode}
+                  onFieldChange={onFieldChange}
+                >
                   {doiLink ? (
                     <a href={doiLink} target="_blank" rel="noreferrer">
                       {publication.doi}
@@ -44,7 +91,7 @@ function PublicationsTable({ publications }) {
                   ) : (
                     '—'
                   )}
-                </td>
+                </EditableCell>
               </tr>
             );
           })}

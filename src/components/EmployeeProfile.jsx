@@ -29,27 +29,78 @@ function ProfileLink({ type, id }) {
   );
 }
 
-function EmployeeProfile({ employee, onDownloadCv }) {
+function EditableValue({ isEditMode, path, value, displayValue, onFieldChange, ariaLabel }) {
+  if (isEditMode && path) {
+    return (
+      <input
+        className="inline-field"
+        aria-label={ariaLabel}
+        value={value ?? ''}
+        onChange={(event) => onFieldChange(path, event.target.value)}
+      />
+    );
+  }
+
+  return displayValue || value || '—';
+}
+
+function EmployeeProfile({ employee, isEditMode = false, onFieldChange, onDownloadCv }) {
   const age = calculateAge(employee.birthDate);
   const primaryFields = [
-    { label: 'Должность', value: employee.position },
-    { label: 'Лаборатория', value: employee.laboratory },
-    { label: 'Дата рождения', value: formatDate(employee.birthDate) },
+    { label: 'Должность', path: 'position', value: employee.position },
+    { label: 'Лаборатория', path: 'laboratory', value: employee.laboratory },
+    {
+      label: 'Дата рождения',
+      path: 'birthDate',
+      value: employee.birthDate,
+      displayValue: formatDate(employee.birthDate)
+    },
     { label: 'Возраст', value: age ?? '—' },
     {
       label: 'Телефон',
-      value: <ContactLink href={buildTelLink(employee.phone)}>{employee.phone}</ContactLink>
+      path: 'phone',
+      value: employee.phone,
+      displayValue: <ContactLink href={buildTelLink(employee.phone)}>{employee.phone}</ContactLink>
     },
     {
       label: 'Email',
-      value: <ContactLink href={buildMailTo(employee.email)}>{employee.email}</ContactLink>
+      path: 'email',
+      value: employee.email,
+      displayValue: <ContactLink href={buildMailTo(employee.email)}>{employee.email}</ContactLink>
     },
-    { label: 'Scopus ID', value: <ProfileLink type="scopus" id={employee.scopusId} /> },
-    { label: 'Web of Science ID', value: <ProfileLink type="wos" id={employee.wosId} /> },
-    { label: 'ORCID ID', value: <ProfileLink type="orcid" id={employee.orcidId} /> },
-    { label: 'Ученая степень', value: employee.academicDegree.degree },
-    { label: 'Год получения степени', value: employee.academicDegree.year },
-    { label: 'Место защиты', value: employee.academicDegree.defensePlace }
+    {
+      label: 'Scopus ID',
+      path: 'scopusId',
+      value: employee.scopusId,
+      displayValue: <ProfileLink type="scopus" id={employee.scopusId} />
+    },
+    {
+      label: 'Web of Science ID',
+      path: 'wosId',
+      value: employee.wosId,
+      displayValue: <ProfileLink type="wos" id={employee.wosId} />
+    },
+    {
+      label: 'ORCID ID',
+      path: 'orcidId',
+      value: employee.orcidId,
+      displayValue: <ProfileLink type="orcid" id={employee.orcidId} />
+    },
+    {
+      label: 'Ученая степень',
+      path: 'academicDegree.degree',
+      value: employee.academicDegree.degree
+    },
+    {
+      label: 'Год получения степени',
+      path: 'academicDegree.year',
+      value: employee.academicDegree.year
+    },
+    {
+      label: 'Место защиты',
+      path: 'academicDegree.defensePlace',
+      value: employee.academicDegree.defensePlace
+    }
   ];
 
   return (
@@ -63,12 +114,31 @@ function EmployeeProfile({ employee, onDownloadCv }) {
         </button>
       </div>
       <div className="profile-details">
-        <h1 id="employee-profile-title">{employee.fullName}</h1>
+        {isEditMode ? (
+          <input
+            id="employee-profile-title"
+            className="name-input"
+            aria-label="ФИО"
+            value={employee.fullName}
+            onChange={(event) => onFieldChange('fullName', event.target.value)}
+          />
+        ) : (
+          <h1 id="employee-profile-title">{employee.fullName}</h1>
+        )}
         <dl className="profile-meta">
           {primaryFields.map((field) => (
             <div key={field.label} className="profile-meta-row">
               <dt>{field.label}</dt>
-              <dd>{field.value || '—'}</dd>
+              <dd>
+                <EditableValue
+                  isEditMode={isEditMode}
+                  path={field.path}
+                  value={field.value}
+                  displayValue={field.displayValue}
+                  onFieldChange={onFieldChange}
+                  ariaLabel={field.label}
+                />
+              </dd>
             </div>
           ))}
         </dl>

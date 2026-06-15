@@ -26,7 +26,8 @@ body {
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
@@ -42,7 +43,8 @@ a:hover {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+textarea:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
@@ -153,7 +155,8 @@ input:focus-visible {
   font-size: 13px;
 }
 
-input {
+input,
+textarea {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 8px;
@@ -163,11 +166,18 @@ input {
   background: var(--surface);
 }
 
+textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
 input::placeholder {
   color: #89939f;
 }
 
-input:focus {
+input:focus,
+textarea:focus {
   border-color: var(--accent);
 }
 
@@ -208,6 +218,14 @@ input:focus {
   color: #9aa3ad;
   cursor: not-allowed;
   background: var(--surface-muted);
+}
+
+.employee-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .table-header {
@@ -253,6 +271,15 @@ tbody tr:hover {
   font-weight: 700;
 }
 
+.phone-cell {
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.table-input {
+  min-width: 140px;
+}
+
 .profile-card {
   display: grid;
   grid-template-columns: 168px 1fr;
@@ -278,10 +305,15 @@ tbody tr:hover {
   font-weight: 700;
 }
 
-.profile-details h1 {
+.profile-details h1,
+.profile-details .name-input {
   margin: 0 0 18px;
   font-size: 30px;
   line-height: 1.15;
+}
+
+.profile-details .name-input {
+  font-weight: 700;
 }
 
 .profile-meta,
@@ -313,6 +345,14 @@ dd {
   color: var(--text);
   font-size: 14px;
   line-height: 1.45;
+}
+
+.inline-field {
+  max-width: 560px;
+}
+
+.inline-textarea {
+  width: 100%;
 }
 
 .tabs-wrap {
@@ -366,7 +406,6 @@ dd {
 
 .back-link {
   display: inline-block;
-  margin-bottom: 14px;
   color: var(--accent);
   font-weight: 650;
 }
@@ -422,7 +461,7 @@ dd {
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .header {
     padding: 12px 18px;
   }
@@ -444,6 +483,15 @@ dd {
     grid-template-columns: 1fr;
   }
 
+  .secondary-button {
+    width: 100%;
+  }
+
+  .employee-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .profile-aside {
     align-items: stretch;
   }
@@ -452,7 +500,8 @@ dd {
     width: 112px;
   }
 
-  .profile-details h1 {
+  .profile-details h1,
+  .profile-details .name-input {
     font-size: 24px;
   }
 
@@ -462,5 +511,53 @@ dd {
 
   .tab-button {
     white-space: normal;
+  }
+
+  .table-scroll {
+    overflow: visible;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+    min-width: 0;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tbody tr {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+  }
+
+  tbody tr:hover {
+    background: var(--surface);
+  }
+
+  td {
+    border: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 6px 0;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-weight: 650;
+    text-align: left;
+    flex-shrink: 0;
+    padding-right: 8px;
   }
 }

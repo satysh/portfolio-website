@@ -27,19 +27,19 @@ function EmployeeTable({ employees }) {
 
               return (
                 <tr key={employee.id}>
-                  <td>
+                  <td data-label="ФИО">
                     <Link to={`/employee/${employee.id}`} className="table-primary-link">
                       {employee.shortName}
                     </Link>
                   </td>
-                  <td>{employee.position}</td>
-                  <td>
+                  <td data-label="Должность">{employee.position}</td>
+                  <td data-label="E-mail">
                     {mailTo ? <a href={mailTo}>{employee.email}</a> : '—'}
                   </td>
-                  <td>
+                  <td data-label="Телефон" className="phone-cell">
                     {telLink ? <a href={telLink}>{employee.phone}</a> : '—'}
                   </td>
-                  <td>{employee.laboratory}</td>
+                  <td data-label="Лаборатория">{employee.laboratory}</td>
                 </tr>
               );
             })}
